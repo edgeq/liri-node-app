@@ -6,13 +6,10 @@ var fs = require('fs');
 //Then store the keys in a variable.
 var twitterKeys = keys.twitterKeys;
 var spotifyKeys = keys.spotifyKeys;
-var iTermInput = process.argv[2]
+var iTermInput = process.argv[2];
 var userKey = process.argv.splice(3).join(" ");
-
-
 //8. Make it so liri.js can take in one of the following commands:
   // * `my-tweets` * `spotify-this-song` * `movie-this` * `do-what-it-says`
-
   var inputArray = ["my-tweets", "spotify-this-song", "movie-this", "do-what-it-says"];
    //What each command should do:
    /*if (iTermInput[0]){
@@ -36,59 +33,34 @@ var userKey = process.argv.splice(3).join(" ");
           }
         });
         console.log("you tweeted..." + "on this date");
-
+        //spotify-this-song
       } else if(iTermInput === inputArray[1]){
-
-        var Spotify = require('node-spotify-api');
-
-        var spotify = new Spotify(spotifyKeys);
-
-        spotify.search({ type: 'track', query: userKey, limit: 1}, function(err, data) {
-          if (err) {
-            return console.log('Error occurred: ' + err);
-          }
-          /*conosle.log(Artist) * console.log(song's name) * conzole.log(song preview link) * console.log(album) */
-          console.log(data.tracks.items[0].artists[0].name);
-          console.log(data.tracks.items[0].name);
-          console.log(data.tracks.items[0].preview_url)
-          console.log(data.tracks.items[0].uri);
-          console.log(data.tracks.items[0].album.name);
-
-        });
-
+        //run a function that searches spotify
+        if (!userKey){
+          userKey = "The Sign Ace of Base";
+        }
         console.log("spotify song...");
-      } else if(iTermInput === inputArray[2]){
-        console.log(userKey, " this is userKey");// userKey = process.argv[3];console
-        request("http://www.omdbapi.com/?t=" + userKey + "&y=&plot=short&apikey=40e9cece", function(error, response, body) {
-
-          // If the request is successful (i.e. if the response status code is 200)
-          if (!error && response.statusCode === 200) {
-         /*
-         else if (iTermInput[2]) {
-         console.log(Title of Movie / Year / RatingIMDB / RatingRT / Country / Language / Plot / Actors);
-         */
-            console.log("Title: " + JSON.parse(body).Title);
-            console.log("Year: " + JSON.parse(body).Year);
-            console.log("IMDB rating: " + JSON.parse(body).imdbRating);
-            console.log("Rotten Tomatoes Score: " + JSON.parse(body).Ratings[1].Value);
-            console.log("Country: " + JSON.parse(body).Country);
-            console.log("Language: " + JSON.parse(body).Language);
-            console.log("Plot: " + JSON.parse(body).Plot);
-            console.log("Actors: " + JSON.parse(body).Actors);
-            console.log("==============");
-          }
-        });
-/*
-          if (no movie){
-            Mr. Nobody
-          }
-        }*/
+        spotifySearch(userKey);
+      }
+      //movie-this
+      else if(iTermInput === inputArray[2]){
+        /*if (no movie){Mr. Nobody}}*/
+        if (!userKey){
+          userKey = "Mr Nobody";
+        }
+        // userKey.replace('\'', "\%27"); - couldn't get this to work.
+        movieSearch(userKey);
+        console.log(userKey);
         console.log("OMDB pull...");
+        //do-what-it-says
       } else if (iTermInput === inputArray[3]){
         fs.readFile("random.txt", "utf8", function(err, data){
-          //log contents of file into process.argv
-          var output = data.split(",").join(" ").split("\"").join(" ");
+          //get the song from random.txt for use with spotifySearch();
+          var output = data.split(",").join(" ");
+          output = output.substr(output.indexOf('\"'), output.length);
           console.log(output);
+          //output should call spotifySearch().
+          spotifySearch(output);
         })
         console.log("run text file...");
 
@@ -97,12 +69,44 @@ var userKey = process.argv.splice(3).join(" ");
       };
 
 
-      /*else if(iTermInput[3]){
-        fs.readFile("random.txt", "utf8", function(){
-          write randomTxt file as process.argv[2] in terminal
-        }
-      }
-      */
+//functions for calling spotify, to be used with do-what-it-says & empty argv
+function spotifySearch(song){
+  var Spotify = require('node-spotify-api');
+  var spotify = new Spotify(spotifyKeys);
+  spotify.search({ type: 'track', query: song, limit: 1}, function(err, data) {
+    if (err) {
+      return console.log('Error occurred: ' + err);
+    }
+    /*conosle.log(Artist) * console.log(song's name) * conzole.log(song preview link) * console.log(album) */
+    console.log(data.tracks.items[0].artists[0].name);
+    console.log(data.tracks.items[0].name);
+    console.log(data.tracks.items[0].preview_url);
+    console.log(data.tracks.items[0].uri);
+    console.log(data.tracks.items[0].album.name);
+  });
+};
+function movieSearch(movie){
+
+  request("http://www.omdbapi.com/?t=" + movie + "&y=&plot=short&apikey=40e9cece", function(error, response, body) {
+    // If the request is successful (i.e. if the response status code is 200)
+    // console.log(JSON.parse(body));
+    if (!error && response.statusCode === 200) {
+   /*
+   else if (iTermInput[2]) {
+   console.log(Title of Movie / Year / RatingIMDB / RatingRT / Country / Language / Plot / Actors);
+   */
+   console.log("Title: " + JSON.parse(body).Title);
+   console.log("Year: " + JSON.parse(body).Year);
+   console.log("IMDB rating: " + JSON.parse(body).imdbRating);
+   console.log("Rotten Tomatoes Score: " + JSON.parse(body).Ratings[1].Value);
+   console.log("Country: " + JSON.parse(body).Country);
+   console.log("Language: " + JSON.parse(body).Language);
+   console.log("Plot: " + JSON.parse(body).Plot);
+   console.log("Actors: " + JSON.parse(body).Actors);
+   console.log("==============");
+ }
+});
+};
 
 
 
